@@ -16,15 +16,17 @@ abstract class AccountStore {
 }
 class DatabaseAccountStore(val session: DBSession = AutoSession) extends AccountStore {
   override def save(newAccount: NewAccount) = {
-    DB localTx { implicit session => {
-      val id = sql"""
-          insert into accounts (name, email)
-          values (${newAccount.name}, ${newAccount.email})
-        """
-        .updateAndReturnGeneratedKey()
-        .apply()
-      new Account(id, newAccount.name, newAccount.email)
-    }}
+    DB localTx {
+      implicit session => {
+        val id = sql"""
+            insert into accounts (name, email)
+            values (${newAccount.name}, ${newAccount.email})
+          """
+          .updateAndReturnGeneratedKey()
+          .apply()
+        new Account(id, newAccount.name, newAccount.email)
+      }
+    }
   }
   override def get(id: Long): Option[Account] = {
     DB readOnly { implicit session => {
@@ -67,7 +69,10 @@ class GetAccountHandler(val accountRepo: AccountStore)
 class ClientRequest extends HttpRequest
 
 class AccountRouter {
-  def handle(clientRequest: ClientRequest) = new HttpResponse(200, "in account router")
+  def handle(clientRequest: ClientRequest) = {
+
+    new HttpResponse(200, "in account router")
+  }
 }
 
 class NewAccount(val name: String, val email: String)
